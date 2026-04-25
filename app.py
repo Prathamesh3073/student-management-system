@@ -8,9 +8,8 @@ app = Flask(__name__)
 app.secret_key = "secret"
 
 
-# ---------- RAZORPAY CLIENT ----------
+# ---------- RAZORPAY ----------
 client = razorpay.Client(auth=("rzp_test_ShpURXg9OjWgyg", "MXYWTfa0IcMfypb8BRMI8oxw"))
-# ⚠️ replace with your real keys
 
 
 # ---------- DATABASE ----------
@@ -75,7 +74,7 @@ def signup():
         hashed = bcrypt.hashpw(pwd.encode("utf-8"), bcrypt.gensalt())
 
         conn = connect_db()
-        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, hashed))
+        conn.execute("INSERT INTO users VALUES (?, ?)", (user, hashed))
         conn.commit()
 
         return redirect("/login")
@@ -119,7 +118,7 @@ def dashboard():
     )
 
 
-# ---------- ADD STUDENT ----------
+# ---------- ADD ----------
 @app.route("/add", methods=["GET", "POST"])
 def add_student():
     if "user" not in session:
@@ -150,7 +149,7 @@ def pay(id):
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
 
     remaining = student[3] - student[4]
-    amount = remaining * 100  # paise
+    amount = remaining * 100
 
     order = client.order.create({
         "amount": amount,
@@ -158,10 +157,10 @@ def pay(id):
         "payment_capture": 1
     })
 
-    return render_template("payment.html", order=order, student=student, key="YOUR_KEY_ID")
+    return render_template("payment.html", order=order, student=student, key="rzp_test_ShpURXg9OjWgyg")
 
 
-# ---------- PAYMENT SUCCESS ----------
+# ---------- SUCCESS ----------
 @app.route("/success/<int:id>", methods=["POST"])
 def success(id):
     conn = connect_db()
