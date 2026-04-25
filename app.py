@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "secret"
 
 
-# ---------------- DATABASE AUTO CREATE (FOR RENDER) ---------------- #
+# ---------- DATABASE AUTO CREATE ----------
 if not os.path.exists("database.db"):
     conn = sqlite3.connect("database.db")
     conn.execute("CREATE TABLE users (username TEXT, password TEXT)")
@@ -19,13 +19,13 @@ def connect_db():
     return sqlite3.connect("database.db")
 
 
-# ---------------- HOME ---------------- #
+# ---------- HOME ----------
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# ---------------- LOGIN ---------------- #
+# ---------- LOGIN ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -42,7 +42,7 @@ def login():
     return render_template("login.html")
 
 
-# ---------------- SIGNUP ---------------- #
+# ---------- SIGNUP ----------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -50,7 +50,7 @@ def signup():
         pwd = request.form["password"]
 
         conn = connect_db()
-        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, pwd))
+        conn.execute("INSERT INTO users VALUES (?, ?)", (user, pwd))
         conn.commit()
 
         return redirect("/login")
@@ -58,14 +58,14 @@ def signup():
     return render_template("signup.html")
 
 
-# ---------------- LOGOUT ---------------- #
+# ---------- LOGOUT ----------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
 
-# ---------------- DASHBOARD ---------------- #
+# ---------- DASHBOARD ----------
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     if "user" not in session:
@@ -115,7 +115,63 @@ def dashboard():
     )
 
 
-# ---------------- EXPORT ---------------- #
+# ---------- ADD STUDENT ----------
+@app.route("/add", methods=["GET", "POST"])
+def add_student():
+    if "user" not in session:
+        return redirect("/login")
+
+    if request.method == "POST":
+        name = request.form["name"]
+        course = request.form["course"]
+        total = int(request.form["total"])
+        paid = int(request.form["paid"])
+
+        conn = connect_db()
+        conn.execute(
+            "INSERT INTO students (name, course, fees, paid) VALUES (?, ?, ?, ?)",
+            (name, course, total, paid)
+        )
+        conn.commit()
+
+        return redirect("/dashboard")
+
+    return render_template("add_student.html")
+
+
+# ---------- DELETE ----------
+@app.route("/delete/<int:id>")
+def delete_student(id):
+    conn = connect_db()
+    conn.execute("DELETE FROM students WHERE id=?", (id,))
+    conn.commit()
+    return redirect("/dashboard")
+
+
+# ---------- EDIT ----------
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit_student(id):
+    conn = connect_db()
+
+    if request.method == "POST":
+        name = request.form["name"]
+        course = request.form["course"]
+        total = int(request.form["total"])
+        paid = int(request.form["paid"])
+
+        conn.execute(
+            "UPDATE students SET name=?, course=?, fees=?, paid=? WHERE id=?",
+            (name, course, total, paid, id)
+        )
+        conn.commit()
+
+        return redirect("/dashboard")
+
+    student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
+    return render_template("edit_student.html", student=student)
+
+
+# ---------- EXPORT ----------
 @app.route("/export")
 def export():
     if "user" not in session:
