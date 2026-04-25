@@ -26,7 +26,7 @@ def home():
     return render_template("index.html")
 
 
-# ---------- LOGIN (FIXED - HANDLES OLD + NEW USERS) ----------
+# ---------- LOGIN (FINAL FIXED) ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -39,16 +39,25 @@ def login():
         if data:
             stored_password = data[1]
 
+            # ensure bytes
+            if isinstance(stored_password, str):
+                stored_password = stored_password.encode("utf-8")
+
             try:
-                # Try bcrypt (new users)
-                if bcrypt.checkpw(pwd.encode('utf-8'), stored_password):
+                # bcrypt check
+                if bcrypt.checkpw(pwd.encode("utf-8"), stored_password):
                     session["user"] = user
                     return redirect("/dashboard")
             except:
-                # Fallback for old users (plain text)
-                if stored_password == pwd:
+                pass
+
+            # fallback for old plain text users
+            try:
+                if stored_password.decode("utf-8") == pwd:
                     session["user"] = user
                     return redirect("/dashboard")
+            except:
+                pass
 
     return render_template("login.html")
 
@@ -60,7 +69,7 @@ def signup():
         user = request.form["username"]
         pwd = request.form["password"]
 
-        hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt())
+        hashed = bcrypt.hashpw(pwd.encode("utf-8"), bcrypt.gensalt())
 
         conn = connect_db()
         conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, hashed))
@@ -128,7 +137,7 @@ def dashboard():
     )
 
 
-# ---------- ADD STUDENT ----------
+# ---------- ADD ----------
 @app.route("/add", methods=["GET", "POST"])
 def add_student():
     if "user" not in session:
