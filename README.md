@@ -27,6 +27,7 @@ EduTrack is a modern **student management web application** that helps institute
 ---
 
 ## 📂 Project Structure
+```
 student-management-system/
 │
 ├── app.py
@@ -35,29 +36,50 @@ student-management-system/
 ├── Procfile
 │
 ├── templates/
-│ ├── index.html
-│ ├── login.html
-│ ├── signup.html
-│ ├── dashboard.html
-│ ├── add_student.html
-│ └── edit_student.html
-│
-└── static/student-management-system/
-│
-├── app.py
-├── database.db
-├── requirements.txt
-├── Procfile
-│
-├── templates/
-│ ├── index.html
-│ ├── login.html
-│ ├── signup.html
-│ ├── dashboard.html
-│ ├── add_student.html
-│ └── edit_student.html
+│   ├── index.html
+│   ├── login.html
+│   ├── signup.html
+│   ├── dashboard.html
+│   ├── add_student.html
+│   └── edit_student.html
 │
 └── static/
+```
+🥉 STEP 3: PASTE IT
+
+👉 Replace your current structure with this
+
+🟢 STEP 4: SAVE
+
+Scroll down → click:
+
+Commit changes
+⚠️ IMPORTANT (READ THIS)
+
+Make sure:
+
+You copied all 3 backticks ```
+Each line is on a new line
+Don’t remove any symbols like:
+│ ├── └──
+🎯 RESULT
+
+Now it will show like:
+
+student-management-system/
+├── app.py
+├── database.db
+...
+
+👉 Clean & professional ✅
+
+🚀 NEXT
+
+After this works:
+
+👉 say “ready deploy”
+
+We’ll make your website LIVE 🌐🚀
 
 🎯 WHY THIS WORKS
 👉 “This is code block”
