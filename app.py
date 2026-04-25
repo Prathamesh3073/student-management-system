@@ -1,18 +1,18 @@
-from flask import Flask, render_template, request, redirect, session, Response, abort
+from flask import Flask, render_template, request, redirect, session, Response
 import sqlite3
 import os
 import bcrypt
 import razorpay
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_change_me")
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
 
 
-# ---------- RAZORPAY (USE ENV VARS) ----------
+# ---------- RAZORPAY KEYS ----------
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 
-# Fallback (only for quick local testing – NOT recommended for production)
+# fallback (only for local testing)
 if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
     RAZORPAY_KEY_ID = "rzp_test_ShpURXg9OjWgyg"
     RAZORPAY_KEY_SECRET = "MXYWTfa0IcMfypb8BRMI8oxw"
@@ -21,10 +21,9 @@ client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 
 # ---------- DATABASE ----------
-DB_PATH = "database.db"
-
 def connect_db():
-    return sqlite3.connect(DB_PATH)
+    return sqlite3.connect("database.db")
+
 
 def init_db():
     conn = connect_db()
@@ -40,6 +39,7 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+
 
 init_db()
 
@@ -63,6 +63,7 @@ def login():
 
         if data:
             stored = data[1]
+
             if isinstance(stored, str):
                 stored = stored.encode("utf-8")
 
@@ -73,7 +74,7 @@ def login():
             except:
                 pass
 
-            # fallback for old plain text
+            # fallback (old plain text users)
             try:
                 if stored.decode("utf-8") == pwd:
                     session["user"] = user
@@ -95,7 +96,7 @@ def signup():
 
         conn = connect_db()
         try:
-            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, hashed))
+            conn.execute("INSERT INTO users VALUES (?, ?)", (user, hashed))
             conn.commit()
         except:
             pass
@@ -209,7 +210,7 @@ def edit_student(id):
     conn.close()
 
     if not student:
-        abort(404)
+        return "Student not found"
 
     return render_template("edit_student.html", student=student)
 
@@ -225,21 +226,29 @@ def pay(id):
     conn.close()
 
     if not student:
-        abort(404)
+        return "Student not found"
 
-    remaining = max(0, student[3] - student[4])
-    if remaining == 0:
+    remaining = student[3] - student[4]
+
+    if remaining <= 0:
         return redirect("/dashboard")
 
-    amount = remaining * 100  # paise
+    amount = remaining * 100
 
-    order = client.order.create({
-        "amount": amount,
-        "currency": "INR",
-        "payment_capture": 1
-    })
+    try:
+        print("KEY:", RAZORPAY_KEY_ID)  # debug
 
-    return render_template("payment.html", order=order, student=student, key=RAZORPAY_KEY_ID)
+        order = client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1
+        })
+
+        return render_template("payment.html", order=order, student=student, key=RAZORPAY_KEY_ID)
+
+    except Exception as e:
+        print("RAZORPAY ERROR:", e)
+        return f"Payment Error: {str(e)}"
 
 
 # ---------- SUCCESS ----------
@@ -253,9 +262,9 @@ def success(id):
 
     if not student:
         conn.close()
-        abort(404)
+        return "Student not found"
 
-    remaining = max(0, student[3] - student[4])
+    remaining = student[3] - student[4]
 
     conn.execute("UPDATE students SET paid = paid + ? WHERE id=?", (remaining, id))
     conn.commit()
