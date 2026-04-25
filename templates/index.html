@@ -3,28 +3,56 @@
 <head>
 <title>EduTrack</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-body { font-family:'Segoe UI'; }
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+}
+
+/* NAVBAR */
+.navbar {
+    padding: 15px 40px;
+}
 
 /* HERO */
 .hero {
-    background:#0f172a;
-    color:white;
-    padding:100px;
-    text-align:center;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.hero p {
+    font-size: 18px;
+    color: #94a3b8;
 }
 
 /* SECTION */
 .section {
-    padding:60px;
+    padding: 70px 20px;
 }
 
-/* CARD */
-.feature {
-    padding:20px;
-    text-align:center;
+/* FEATURES */
+.feature-box {
+    padding: 20px;
+    text-align: center;
+}
+
+/* FOOTER */
+.footer {
+    background: #020617;
+    color: #94a3b8;
+    padding: 20px;
+    text-align: center;
 }
 </style>
 
@@ -33,8 +61,9 @@ body { font-family:'Segoe UI'; }
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow px-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow">
     <h4>EduTrack</h4>
+
     <div class="ms-auto">
         <a href="/login" class="btn btn-outline-dark me-2">Login</a>
         <a href="/signup" class="btn btn-primary">Sign Up</a>
@@ -44,7 +73,13 @@ body { font-family:'Segoe UI'; }
 <!-- HERO -->
 <div class="hero">
     <h1>All-in-One Student Management System</h1>
+
     <p>Manage students, track fees, and grow your institute smarter.</p>
+
+    <p style="margin-top:20px;">
+        Trusted by 100+ institutions <span style="color:#22c55e;">(Demo Project)</span>
+    </p>
+
     <a href="/signup" class="btn btn-primary mt-3">Get Started</a>
 </div>
 
@@ -53,38 +88,50 @@ body { font-family:'Segoe UI'; }
 <h2 class="text-center mb-5">Features</h2>
 
 <div class="row">
-<div class="col-md-4 feature">📊 Dashboard Analytics</div>
-<div class="col-md-4 feature">💰 Fee Tracking</div>
-<div class="col-md-4 feature">📥 Export Reports</div>
+<div class="col-md-4 feature-box">
+    <h5>📊 Dashboard Analytics</h5>
+    <p>Visual insights with charts and reports.</p>
+</div>
+
+<div class="col-md-4 feature-box">
+    <h5>💰 Fee Management</h5>
+    <p>Track paid and pending fees easily.</p>
+</div>
+
+<div class="col-md-4 feature-box">
+    <h5>📥 Export Reports</h5>
+    <p>Download data in CSV format instantly.</p>
 </div>
 </div>
 
-<!-- WHY CHOOSE US -->
+</div>
+
+<!-- WHY US -->
 <div class="section bg-light text-center">
 <h2>Why Choose EduTrack?</h2>
-<p class="mt-3">Fast, secure, and easy-to-use platform trusted by institutions.</p>
+
+<p class="mt-3">
+Fast, secure, and easy-to-use platform for institutes.
+</p>
 
 <div class="row mt-4">
 <div class="col-md-4">⚡ Fast Performance</div>
-<div class="col-md-4">🔒 Secure Data</div>
-<div class="col-md-4">📊 Real-time Insights</div>
-</div>
+<div class="col-md-4">🔒 Secure Login</div>
+<div class="col-md-4">📊 Real-time Analytics</div>
 </div>
 
-<!-- OFFERING -->
-<div class="section container text-center">
-<h2>What We Offer</h2>
-
-<p class="mt-3">
-Student management, fee tracking, reporting tools, and analytics —
-all in one platform.
-</p>
 </div>
 
 <!-- CTA -->
-<div class="section text-center bg-dark text-white">
+<div class="section text-center" style="background:#0f172a; color:white;">
 <h2>Start Managing Today</h2>
+
 <a href="/signup" class="btn btn-primary mt-3">Create Account</a>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    © 2026 EduTrack | Built by Prathamesh Kulkarni
 </div>
 
 </body>
