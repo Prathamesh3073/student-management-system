@@ -1,12 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Payment</title>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+body {
+    background:#0f172a;
+    color:white;
+    text-align:center;
+    padding:100px;
+    font-family:Segoe UI;
+}
+button {
+    padding:15px 30px;
+    font-size:18px;
+    background:#22c55e;
+    border:none;
+    border-radius:10px;
+    color:white;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Pay Fees</h2>
+<h1>Complete Your Payment</h1>
+<p>Remaining Amount: ₹{{student[3] - student[4]}}</p>
 
 <button id="payBtn">Pay Now</button>
 
@@ -19,8 +39,11 @@ var options = {
     "order_id": "{{order['id']}}",
 
     "handler": function (response){
-        fetch("/success/{{student[0]}}", {method: "POST"})
-        .then(()=> window.location="/dashboard");
+        fetch("/success/{{student[0]}}", {method:"POST"})
+        .then(()=>{
+            alert("Payment Successful 🎉");
+            window.location="/dashboard";
+        });
     }
 };
 
