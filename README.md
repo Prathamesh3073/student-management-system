@@ -42,7 +42,59 @@ student-management-system/
 │ ├── add_student.html
 │ └── edit_student.html
 │
+└── static/student-management-system/
+│
+├── app.py
+├── database.db
+├── requirements.txt
+├── Procfile
+│
+├── templates/
+│ ├── index.html
+│ ├── login.html
+│ ├── signup.html
+│ ├── dashboard.html
+│ ├── add_student.html
+│ └── edit_student.html
+│
 └── static/
+
+🎯 WHY THIS WORKS
+👉 “This is code block”
+So formatting is preserved
+⚠️ COMMON MISTAKE
+
+❌ Writing without backticks:
+
+student-management-system/ ├── app.py ├── ...
+
+👉 becomes one line
+
+🧠 PRO TIP (MAKE IT EVEN BETTER)
+
+You can also use:
+
+```bash
+
+instead of plain ```
+👉 gives better styling
+
+🚀 RESULT
+
+After fix:
+
+Clean tree structure ✅
+Professional look ✅
+Easy to read ✅
+👉 NEXT
+
+Update README → commit → push
+
+Then say:
+
+👉 “ready deploy”
+
+We go live 🌐🚀
 
 ---
 
