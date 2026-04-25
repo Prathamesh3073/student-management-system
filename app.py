@@ -26,7 +26,7 @@ def home():
     return render_template("index.html")
 
 
-# ---------- LOGIN ----------
+# ---------- LOGIN (FIXED - HANDLES OLD + NEW USERS) ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -36,9 +36,19 @@ def login():
         conn = connect_db()
         data = conn.execute("SELECT * FROM users WHERE username=?", (user,)).fetchone()
 
-        if data and bcrypt.checkpw(pwd.encode('utf-8'), data[1]):
-            session["user"] = user
-            return redirect("/dashboard")
+        if data:
+            stored_password = data[1]
+
+            try:
+                # Try bcrypt (new users)
+                if bcrypt.checkpw(pwd.encode('utf-8'), stored_password):
+                    session["user"] = user
+                    return redirect("/dashboard")
+            except:
+                # Fallback for old users (plain text)
+                if stored_password == pwd:
+                    session["user"] = user
+                    return redirect("/dashboard")
 
     return render_template("login.html")
 
