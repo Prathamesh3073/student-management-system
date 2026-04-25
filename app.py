@@ -1,21 +1,31 @@
 from flask import Flask, render_template, request, redirect, session, Response
 import sqlite3
+import os
 
 app = Flask(__name__)
 app.secret_key = "secret"
+
+
+# ---------------- DATABASE AUTO CREATE (FOR RENDER) ---------------- #
+if not os.path.exists("database.db"):
+    conn = sqlite3.connect("database.db")
+    conn.execute("CREATE TABLE users (username TEXT, password TEXT)")
+    conn.execute("CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, course TEXT, fees INTEGER, paid INTEGER)")
+    conn.commit()
+    conn.close()
 
 
 def connect_db():
     return sqlite3.connect("database.db")
 
 
-# ---------- HOME ----------
+# ---------------- HOME ---------------- #
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# ---------- LOGIN ----------
+# ---------------- LOGIN ---------------- #
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -32,7 +42,7 @@ def login():
     return render_template("login.html")
 
 
-# ---------- SIGNUP ----------
+# ---------------- SIGNUP ---------------- #
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -48,14 +58,14 @@ def signup():
     return render_template("signup.html")
 
 
-# ---------- LOGOUT ----------
+# ---------------- LOGOUT ---------------- #
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
 
-# ---------- DASHBOARD ----------
+# ---------------- DASHBOARD ---------------- #
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     if "user" not in session:
@@ -105,7 +115,7 @@ def dashboard():
     )
 
 
-# ---------- EXPORT ----------
+# ---------------- EXPORT ---------------- #
 @app.route("/export")
 def export():
     if "user" not in session:
