@@ -61,14 +61,18 @@ Make sure:
 You copied all 3 backticks ```
 Each line is on a new line
 Don’t remove any symbols like:
+```
 │ ├── └──
+```
 🎯 RESULT
 
 Now it will show like:
 
 student-management-system/
+```
 ├── app.py
 ├── database.db
+```
 ...
 
 👉 Clean & professional ✅
