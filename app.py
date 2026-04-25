@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, Response
 import sqlite3
 import os
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = "secret"
@@ -9,7 +10,7 @@ app.secret_key = "secret"
 # ---------- DATABASE AUTO CREATE ----------
 if not os.path.exists("database.db"):
     conn = sqlite3.connect("database.db")
-    conn.execute("CREATE TABLE users (username TEXT, password TEXT)")
+    conn.execute("CREATE TABLE users (username TEXT UNIQUE, password BLOB)")
     conn.execute("CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, course TEXT, fees INTEGER, paid INTEGER)")
     conn.commit()
     conn.close()
@@ -35,7 +36,7 @@ def login():
         conn = connect_db()
         data = conn.execute("SELECT * FROM users WHERE username=?", (user,)).fetchone()
 
-        if data and data[1] == pwd:
+        if data and bcrypt.checkpw(pwd.encode('utf-8'), data[1]):
             session["user"] = user
             return redirect("/dashboard")
 
@@ -49,8 +50,10 @@ def signup():
         user = request.form["username"]
         pwd = request.form["password"]
 
+        hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt())
+
         conn = connect_db()
-        conn.execute("INSERT INTO users VALUES (?, ?)", (user, pwd))
+        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, hashed))
         conn.commit()
 
         return redirect("/login")
