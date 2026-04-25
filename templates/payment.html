@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+
+<h2>Pay Fees</h2>
+
+<button id="payBtn">Pay Now</button>
+
+<script>
+var options = {
+    "key": "{{key}}",
+    "amount": "{{order['amount']}}",
+    "currency": "INR",
+    "name": "EduTrack",
+    "order_id": "{{order['id']}}",
+
+    "handler": function (response){
+        fetch("/success/{{student[0]}}", {method: "POST"})
+        .then(()=> window.location="/dashboard");
+    }
+};
+
+var rzp = new Razorpay(options);
+
+document.getElementById('payBtn').onclick = function(e){
+    rzp.open();
+    e.preventDefault();
+}
+</script>
+
+</body>
+</html>
