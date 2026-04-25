@@ -1,28 +1,47 @@
-from flask import Flask, render_template, request, redirect, session, Response
+from flask import Flask, render_template, request, redirect, session, Response, abort
 import sqlite3
 import os
 import bcrypt
 import razorpay
 
 app = Flask(__name__)
-app.secret_key = "secret"
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_change_me")
 
 
-# ---------- RAZORPAY ----------
-client = razorpay.Client(auth=("rzp_test_ShpURXg9OjWgyg", "MXYWTfa0IcMfypb8BRMI8oxw"))
+# ---------- RAZORPAY (USE ENV VARS) ----------
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
+
+# Fallback (only for quick local testing – NOT recommended for production)
+if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+    RAZORPAY_KEY_ID = "rzp_test_ShpURXg9OjWgyg"
+    RAZORPAY_KEY_SECRET = "MXYWTfa0IcMfypb8BRMI8oxw"
+
+client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 
 # ---------- DATABASE ----------
-if not os.path.exists("database.db"):
-    conn = sqlite3.connect("database.db")
-    conn.execute("CREATE TABLE users (username TEXT UNIQUE, password BLOB)")
-    conn.execute("CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, course TEXT, fees INTEGER, paid INTEGER)")
+DB_PATH = "database.db"
+
+def connect_db():
+    return sqlite3.connect(DB_PATH)
+
+def init_db():
+    conn = connect_db()
+    conn.execute("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password BLOB)")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            course TEXT,
+            fees INTEGER,
+            paid INTEGER
+        )
+    """)
     conn.commit()
     conn.close()
 
-
-def connect_db():
-    return sqlite3.connect("database.db")
+init_db()
 
 
 # ---------- HOME ----------
@@ -35,27 +54,28 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        user = request.form["username"]
-        pwd = request.form["password"]
+        user = request.form.get("username")
+        pwd = request.form.get("password")
 
         conn = connect_db()
         data = conn.execute("SELECT * FROM users WHERE username=?", (user,)).fetchone()
+        conn.close()
 
         if data:
-            stored_password = data[1]
-
-            if isinstance(stored_password, str):
-                stored_password = stored_password.encode("utf-8")
+            stored = data[1]
+            if isinstance(stored, str):
+                stored = stored.encode("utf-8")
 
             try:
-                if bcrypt.checkpw(pwd.encode("utf-8"), stored_password):
+                if bcrypt.checkpw(pwd.encode("utf-8"), stored):
                     session["user"] = user
                     return redirect("/dashboard")
             except:
                 pass
 
+            # fallback for old plain text
             try:
-                if stored_password.decode("utf-8") == pwd:
+                if stored.decode("utf-8") == pwd:
                     session["user"] = user
                     return redirect("/dashboard")
             except:
@@ -68,14 +88,18 @@ def login():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        user = request.form["username"]
-        pwd = request.form["password"]
+        user = request.form.get("username")
+        pwd = request.form.get("password")
 
         hashed = bcrypt.hashpw(pwd.encode("utf-8"), bcrypt.gensalt())
 
         conn = connect_db()
-        conn.execute("INSERT INTO users VALUES (?, ?)", (user, hashed))
-        conn.commit()
+        try:
+            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (user, hashed))
+            conn.commit()
+        except:
+            pass
+        conn.close()
 
         return redirect("/login")
 
@@ -97,6 +121,7 @@ def dashboard():
 
     conn = connect_db()
     data = conn.execute("SELECT * FROM students").fetchall()
+    conn.close()
 
     total_students = len(data)
     total_fees = sum([row[3] for row in data]) if data else 0
@@ -125,10 +150,10 @@ def add_student():
         return redirect("/login")
 
     if request.method == "POST":
-        name = request.form["name"]
-        course = request.form["course"]
-        total = int(request.form["total"])
-        paid = int(request.form["paid"])
+        name = request.form.get("name")
+        course = request.form.get("course")
+        total = int(request.form.get("total", 0))
+        paid = int(request.form.get("paid", 0))
 
         conn = connect_db()
         conn.execute(
@@ -136,20 +161,77 @@ def add_student():
             (name, course, total, paid)
         )
         conn.commit()
+        conn.close()
 
         return redirect("/dashboard")
 
     return render_template("add_student.html")
 
 
+# ---------- DELETE ----------
+@app.route("/delete/<int:id>")
+def delete_student(id):
+    if "user" not in session:
+        return redirect("/login")
+
+    conn = connect_db()
+    conn.execute("DELETE FROM students WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
+    return redirect("/dashboard")
+
+
+# ---------- EDIT ----------
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit_student(id):
+    if "user" not in session:
+        return redirect("/login")
+
+    conn = connect_db()
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        course = request.form.get("course")
+        total = int(request.form.get("total", 0))
+        paid = int(request.form.get("paid", 0))
+
+        conn.execute(
+            "UPDATE students SET name=?, course=?, fees=?, paid=? WHERE id=?",
+            (name, course, total, paid, id)
+        )
+        conn.commit()
+        conn.close()
+
+        return redirect("/dashboard")
+
+    student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
+    conn.close()
+
+    if not student:
+        abort(404)
+
+    return render_template("edit_student.html", student=student)
+
+
 # ---------- PAYMENT ----------
 @app.route("/pay/<int:id>")
 def pay(id):
+    if "user" not in session:
+        return redirect("/login")
+
     conn = connect_db()
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
+    conn.close()
 
-    remaining = student[3] - student[4]
-    amount = remaining * 100
+    if not student:
+        abort(404)
+
+    remaining = max(0, student[3] - student[4])
+    if remaining == 0:
+        return redirect("/dashboard")
+
+    amount = remaining * 100  # paise
 
     order = client.order.create({
         "amount": amount,
@@ -157,19 +239,27 @@ def pay(id):
         "payment_capture": 1
     })
 
-    return render_template("payment.html", order=order, student=student, key="rzp_test_ShpURXg9OjWgyg")
+    return render_template("payment.html", order=order, student=student, key=RAZORPAY_KEY_ID)
 
 
 # ---------- SUCCESS ----------
 @app.route("/success/<int:id>", methods=["POST"])
 def success(id):
+    if "user" not in session:
+        return redirect("/login")
+
     conn = connect_db()
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
 
-    remaining = student[3] - student[4]
+    if not student:
+        conn.close()
+        abort(404)
+
+    remaining = max(0, student[3] - student[4])
 
     conn.execute("UPDATE students SET paid = paid + ? WHERE id=?", (remaining, id))
     conn.commit()
+    conn.close()
 
     return redirect("/dashboard")
 
