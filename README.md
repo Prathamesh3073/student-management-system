@@ -27,3 +27,92 @@ EduTrack is a modern **student management web application** that helps institute
 ---
 
 ## 📂 Project Structure
+student-management-system/
+│
+├── app.py
+├── database.db
+├── requirements.txt
+├── Procfile
+│
+├── templates/
+│ ├── index.html
+│ ├── login.html
+│ ├── signup.html
+│ ├── dashboard.html
+│ ├── add_student.html
+│ └── edit_student.html
+│
+└── static/
+
+---
+
+## ⚙️ Installation (Local Setup)
+
+1. Clone the repository:
+git clone https://github.com/Prathamesh3073/student-management-system.git
+
+cd student-management-system
+
+
+2. Install dependencies:
+
+
+pip install -r requirements.txt
+
+
+3. Run the app:
+
+
+python app.py
+
+
+4. Open in browser:
+
+
+http://127.0.0.1:5000
+
+
+---
+
+## 🌐 Deployment
+
+This project can be deployed on platforms like **Render** using:
+
+- Build Command:
+
+pip install -r requirements.txt
+
+
+- Start Command:
+
+gunicorn app:app
+
+
+---
+
+## ⚠️ Notes
+
+- SQLite is used for simplicity (data may reset on cloud restart)
+- For production, use PostgreSQL or MySQL
+
+---
+
+## 🎯 Purpose
+
+This project was built to demonstrate:
+- Full-stack development
+- UI/UX design (SaaS style)
+- Authentication system
+- Deployment workflow
+
+---
+
+## 👨‍💻 Author
+
+**Prathamesh Kulkarni**
+
+---
+
+## ⭐ If you like this project
+
+Give it a ⭐ on GitHub!
