@@ -3,23 +3,21 @@ import sqlite3
 import os
 import bcrypt
 import razorpay
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
-from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
+app.secret_key = "secret"
 
 
 # ---------- RAZORPAY ----------
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 
-# fallback for local only
 if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
-    RAZORPAY_KEY_ID = "rzp_test_xxxxx"
-    RAZORPAY_KEY_SECRET = "xxxxx"
+    RAZORPAY_KEY_ID = "rzp_test_xxx"
+    RAZORPAY_KEY_SECRET = "xxx"
 
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
@@ -31,7 +29,7 @@ def connect_db():
 
 def init_db():
     conn = connect_db()
-    conn.execute("CREATE TABLE IF NOT EXISTS users (username TEXT UNIQUE, password BLOB)")
+    conn.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password BLOB)")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +42,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 init_db()
 
 
@@ -55,7 +52,7 @@ def home():
 
 
 # ---------- LOGIN ----------
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
         user = request.form["username"]
@@ -68,9 +65,9 @@ def login():
         if data:
             stored = data[1]
             if isinstance(stored, str):
-                stored = stored.encode("utf-8")
+                stored = stored.encode()
 
-            if bcrypt.checkpw(pwd.encode("utf-8"), stored):
+            if bcrypt.checkpw(pwd.encode(), stored):
                 session["user"] = user
                 return redirect("/dashboard")
 
@@ -78,29 +75,22 @@ def login():
 
 
 # ---------- SIGNUP ----------
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=["GET","POST"])
 def signup():
     if request.method == "POST":
         user = request.form["username"]
         pwd = request.form["password"]
 
-        hashed = bcrypt.hashpw(pwd.encode("utf-8"), bcrypt.gensalt())
+        hashed = bcrypt.hashpw(pwd.encode(), bcrypt.gensalt())
 
         conn = connect_db()
-        conn.execute("INSERT INTO users VALUES (?, ?)", (user, hashed))
+        conn.execute("INSERT INTO users VALUES (?,?)", (user, hashed))
         conn.commit()
         conn.close()
 
         return redirect("/login")
 
     return render_template("signup.html")
-
-
-# ---------- LOGOUT ----------
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
 
 
 # ---------- DASHBOARD ----------
@@ -113,30 +103,12 @@ def dashboard():
     data = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
 
-    total_students = len(data)
-    total_fees = sum([row[3] for row in data]) if data else 0
-    total_paid = sum([row[4] for row in data]) if data else 0
-    total_remaining = total_fees - total_paid
-
-    names = [row[1] for row in data]
-    paid = [row[4] for row in data]
-
-    return render_template("dashboard.html",
-                           data=data,
-                           total_students=total_students,
-                           total_fees=total_fees,
-                           total_paid=total_paid,
-                           total_remaining=total_remaining,
-                           names=names,
-                           paid=paid)
+    return render_template("dashboard.html", data=data)
 
 
 # ---------- ADD ----------
-@app.route("/add", methods=["GET", "POST"])
-def add_student():
-    if "user" not in session:
-        return redirect("/login")
-
+@app.route("/add", methods=["GET","POST"])
+def add():
     if request.method == "POST":
         name = request.form["name"]
         course = request.form["course"]
@@ -144,8 +116,8 @@ def add_student():
         paid = int(request.form["paid"])
 
         conn = connect_db()
-        conn.execute("INSERT INTO students (name, course, fees, paid) VALUES (?, ?, ?, ?)",
-                     (name, course, total, paid))
+        conn.execute("INSERT INTO students (name,course,fees,paid) VALUES (?,?,?,?)",
+                     (name,course,total,paid))
         conn.commit()
         conn.close()
 
@@ -156,7 +128,7 @@ def add_student():
 
 # ---------- DELETE ----------
 @app.route("/delete/<int:id>")
-def delete_student(id):
+def delete(id):
     conn = connect_db()
     conn.execute("DELETE FROM students WHERE id=?", (id,))
     conn.commit()
@@ -165,8 +137,8 @@ def delete_student(id):
 
 
 # ---------- EDIT ----------
-@app.route("/edit/<int:id>", methods=["GET", "POST"])
-def edit_student(id):
+@app.route("/edit/<int:id>", methods=["GET","POST"])
+def edit(id):
     conn = connect_db()
 
     if request.method == "POST":
@@ -175,15 +147,17 @@ def edit_student(id):
         total = int(request.form["total"])
         paid = int(request.form["paid"])
 
-        conn.execute("UPDATE students SET name=?, course=?, fees=?, paid=? WHERE id=?",
-                     (name, course, total, paid, id))
+        conn.execute("UPDATE students SET name=?,course=?,fees=?,paid=? WHERE id=?",
+                     (name,course,total,paid,id))
         conn.commit()
         conn.close()
-
         return redirect("/dashboard")
 
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
     conn.close()
+
+    if not student:
+        return "Student not found"
 
     return render_template("edit_student.html", student=student)
 
@@ -195,17 +169,21 @@ def pay(id):
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
     conn.close()
 
+    if not student:
+        return "Student not found"
+
     remaining = student[3] - student[4]
     if remaining <= 0:
         return redirect("/dashboard")
 
-    amount = remaining * 100
-
-    order = client.order.create({
-        "amount": amount,
-        "currency": "INR",
-        "payment_capture": 1
-    })
+    try:
+        order = client.order.create({
+            "amount": remaining * 100,
+            "currency": "INR",
+            "payment_capture": 1
+        })
+    except Exception as e:
+        return f"Payment Error: {str(e)}"
 
     return render_template("payment.html", order=order, student=student, key=RAZORPAY_KEY_ID)
 
@@ -216,12 +194,12 @@ def success(id):
     conn = connect_db()
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
 
-    remaining = student[3] - student[4]
+    if student:
+        remaining = student[3] - student[4]
+        conn.execute("UPDATE students SET paid = paid + ? WHERE id=?", (remaining,id))
+        conn.commit()
 
-    conn.execute("UPDATE students SET paid = paid + ? WHERE id=?", (remaining, id))
-    conn.commit()
     conn.close()
-
     return redirect("/dashboard")
 
 
@@ -232,30 +210,26 @@ def invoice(id):
     student = conn.execute("SELECT * FROM students WHERE id=?", (id,)).fetchone()
     conn.close()
 
+    if not student:
+        return "Student not found"
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer)
     styles = getSampleStyleSheet()
 
-    elements = []
-    elements.append(Paragraph("EduTrack Invoice", styles["Title"]))
-    elements.append(Spacer(1, 20))
+    content = [
+        Paragraph("EduTrack Invoice", styles["Title"]),
+        Paragraph(f"Name: {student[1]}", styles["Normal"]),
+        Paragraph(f"Course: {student[2]}", styles["Normal"]),
+        Paragraph(f"Total: {student[3]}", styles["Normal"]),
+        Paragraph(f"Paid: {student[4]}", styles["Normal"]),
+    ]
 
-    elements.append(Paragraph(f"Student: {student[1]}", styles["Normal"]))
-    elements.append(Paragraph(f"Course: {student[2]}", styles["Normal"]))
-    elements.append(Spacer(1, 10))
-
-    elements.append(Paragraph(f"Total: ₹{student[3]}", styles["Normal"]))
-    elements.append(Paragraph(f"Paid: ₹{student[4]}", styles["Normal"]))
-    elements.append(Paragraph(f"Remaining: ₹{student[3]-student[4]}", styles["Normal"]))
-    elements.append(Spacer(1, 10))
-
-    elements.append(Paragraph(f"Date: {datetime.now().strftime('%d-%m-%Y')}", styles["Normal"]))
-
-    doc.build(elements)
+    doc.build(content)
     buffer.seek(0)
 
-    return Response(buffer, mimetype='application/pdf',
-                    headers={"Content-Disposition": "attachment;filename=invoice.pdf"})
+    return Response(buffer, mimetype="application/pdf",
+                    headers={"Content-Disposition":"attachment;filename=invoice.pdf"})
 
 
 if __name__ == "__main__":
