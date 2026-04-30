@@ -12,7 +12,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 
-# fallback (only for local testing)
+# fallback (ONLY for local CMD testing)
 if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
     RAZORPAY_KEY_ID = "rzp_test_ShpURXg9OjWgyg"
     RAZORPAY_KEY_SECRET = "MXYWTfa0IcMfypb8BRMI8oxw"
@@ -74,7 +74,7 @@ def login():
             except:
                 pass
 
-            # fallback (old plain text users)
+            # fallback for old plain-text users
             try:
                 if stored.decode("utf-8") == pwd:
                     session["user"] = user
@@ -236,7 +236,7 @@ def pay(id):
     amount = remaining * 100
 
     try:
-        print("KEY:", RAZORPAY_KEY_ID)  # debug
+        print("RAZORPAY KEY:", RAZORPAY_KEY_ID)
 
         order = client.order.create({
             "amount": amount,
@@ -247,7 +247,7 @@ def pay(id):
         return render_template("payment.html", order=order, student=student, key=RAZORPAY_KEY_ID)
 
     except Exception as e:
-        print("RAZORPAY ERROR:", e)
+        print("ERROR:", e)
         return f"Payment Error: {str(e)}"
 
 
