@@ -51,12 +51,12 @@ def home():
     return render_template("index.html")
 
 
-# ---------- LOGIN ----------
-@app.route("/login", methods=["GET","POST"])
+# ---------- LOGIN (FIXED) ----------
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        user = request.form["username"]
-        pwd = request.form["password"]
+        user = request.form.get("username")
+        pwd = request.form.get("password")
 
         conn = connect_db()
         data = conn.execute("SELECT * FROM users WHERE username=?", (user,)).fetchone()
@@ -64,18 +64,30 @@ def login():
 
         if data:
             stored = data[1]
-            if isinstance(stored, str):
-                stored = stored.encode()
 
-            if bcrypt.checkpw(pwd.encode(), stored):
-                session["user"] = user
-                return redirect("/dashboard")
+            try:
+                # handle string passwords
+                if isinstance(stored, str):
+                    if stored == pwd:
+                        session["user"] = user
+                        return redirect("/dashboard")
+                    stored = stored.encode()
+
+                # handle bcrypt passwords
+                if bcrypt.checkpw(pwd.encode(), stored):
+                    session["user"] = user
+                    return redirect("/dashboard")
+
+            except:
+                pass
+
+        return "Invalid username or password"
 
     return render_template("login.html")
 
 
 # ---------- SIGNUP ----------
-@app.route("/signup", methods=["GET","POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         user = request.form["username"]
@@ -84,7 +96,7 @@ def signup():
         hashed = bcrypt.hashpw(pwd.encode(), bcrypt.gensalt())
 
         conn = connect_db()
-        conn.execute("INSERT INTO users VALUES (?,?)", (user, hashed))
+        conn.execute("INSERT INTO users VALUES (?, ?)", (user, hashed))
         conn.commit()
         conn.close()
 
@@ -107,7 +119,7 @@ def dashboard():
 
 
 # ---------- ADD ----------
-@app.route("/add", methods=["GET","POST"])
+@app.route("/add", methods=["GET", "POST"])
 def add():
     if request.method == "POST":
         name = request.form["name"]
@@ -137,7 +149,7 @@ def delete(id):
 
 
 # ---------- EDIT ----------
-@app.route("/edit/<int:id>", methods=["GET","POST"])
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
     conn = connect_db()
 
@@ -173,6 +185,7 @@ def pay(id):
         return "Student not found"
 
     remaining = student[3] - student[4]
+
     if remaining <= 0:
         return redirect("/dashboard")
 
