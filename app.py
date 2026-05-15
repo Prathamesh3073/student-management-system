@@ -103,6 +103,13 @@ def signup():
         return redirect("/login")
 
     return render_template("signup.html")
+    
+
+# ---------- LOGOUT ----------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
 
 
 # ---------- DASHBOARD ----------
