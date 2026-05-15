@@ -1,138 +1,356 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>EduTrack</title>
+# Exclusive Premium Home Page
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+Replace your current `templates/index.html` with this full code.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTrack Premium</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
-body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#07111f;
+    color:white;
+    font-family:'Segoe UI',sans-serif;
+    overflow-x:hidden;
+}
+
+/* GLOW EFFECTS */
+.glow{
+    position:fixed;
+    width:450px;
+    height:450px;
+    border-radius:50%;
+    filter:blur(120px);
+    opacity:0.18;
+    z-index:-1;
+    pointer-events:none;
+}
+
+.glow1{
+    background:#2563eb;
+    top:-150px;
+    left:-120px;
+}
+
+.glow2{
+    background:#9333ea;
+    bottom:-150px;
+    right:-120px;
 }
 
 /* NAVBAR */
-.navbar {
-    padding: 15px 40px;
+.navbar{
+    padding:20px 50px;
+    background:rgba(255,255,255,0.03);
+    backdrop-filter:blur(15px);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.logo{
+    font-size:30px;
+    font-weight:700;
+    color:#7dd3fc;
+}
+
+.nav-buttons a{
+    text-decoration:none;
+    margin-left:15px;
+}
+
+.login-btn{
+    padding:10px 22px;
+    border-radius:12px;
+    background:transparent;
+    border:1px solid #38bdf8;
+    color:white;
+    transition:0.3s;
+}
+
+.login-btn:hover{
+    background:#0ea5e9;
+}
+
+.signup-btn{
+    padding:10px 22px;
+    border-radius:12px;
+    background:linear-gradient(90deg,#0ea5e9,#6366f1);
+    border:none;
+    color:white;
+    font-weight:600;
 }
 
 /* HERO */
-.hero {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: white;
-    padding: 100px 20px;
-    text-align: center;
+.hero{
+    min-height:90vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:60px;
 }
 
-.hero h1 {
-    font-size: 48px;
-    font-weight: bold;
+.hero-content{
+    max-width:700px;
+    text-align:center;
 }
 
-.hero p {
-    font-size: 18px;
-    color: #94a3b8;
+.hero h1{
+    font-size:72px;
+    font-weight:800;
+    line-height:1.1;
+    margin-bottom:25px;
 }
 
-/* SECTION */
-.section {
-    padding: 70px 20px;
+.hero span{
+    background:linear-gradient(90deg,#38bdf8,#818cf8);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.hero p{
+    color:#94a3b8;
+    font-size:20px;
+    margin-bottom:35px;
+}
+
+.hero-buttons a{
+    text-decoration:none;
+}
+
+.start-btn{
+    padding:16px 34px;
+    border-radius:14px;
+    background:linear-gradient(90deg,#0ea5e9,#6366f1);
+    color:white;
+    font-size:18px;
+    font-weight:700;
+    margin-right:15px;
+    display:inline-block;
+    transition:0.3s;
+}
+
+.start-btn:hover{
+    transform:translateY(-5px);
+    box-shadow:0 20px 40px rgba(14,165,233,0.35);
+}
+
+.demo-btn{
+    padding:16px 34px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,0.2);
+    color:white;
+    font-size:18px;
+    display:inline-block;
 }
 
 /* FEATURES */
-.feature-box {
-    padding: 20px;
-    text-align: center;
+.features{
+    padding:80px 60px;
+}
+
+.section-title{
+    text-align:center;
+    margin-bottom:60px;
+}
+
+.section-title h2{
+    font-size:48px;
+    font-weight:800;
+}
+
+.section-title p{
+    color:#94a3b8;
+}
+
+.feature-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:25px;
+}
+
+.feature-card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    padding:35px;
+    transition:0.4s;
+}
+
+.feature-card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+}
+
+.feature-card i{
+    font-size:42px;
+    color:#38bdf8;
+    margin-bottom:20px;
+}
+
+.feature-card h3{
+    margin-bottom:15px;
+}
+
+.feature-card p{
+    color:#94a3b8;
 }
 
 /* FOOTER */
-.footer {
-    background: #020617;
-    color: #94a3b8;
-    padding: 20px;
-    text-align: center;
+.footer{
+    padding:40px;
+    text-align:center;
+    color:#94a3b8;
+    border-top:1px solid rgba(255,255,255,0.08);
+    margin-top:60px;
 }
-</style>
 
+@media(max-width:900px){
+
+.hero h1{
+    font-size:48px;
+}
+
+.navbar{
+    padding:20px;
+}
+
+.hero{
+    padding:30px;
+}
+
+.features{
+    padding:50px 25px;
+}
+
+}
+
+</style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow">
-    <h4>EduTrack</h4>
+<div class="glow glow1"></div>
+<div class="glow glow2"></div>
 
-    <div class="ms-auto">
-        <a href="/login" class="btn btn-outline-dark me-2">Login</a>
-        <a href="/signup" class="btn btn-primary">Sign Up</a>
+<!-- NAVBAR -->
+<nav class="navbar d-flex justify-content-between align-items-center">
+
+    <div class="logo">
+        <i class="fa-solid fa-graduation-cap"></i>
+        EduTrack
     </div>
+
+    <div class="nav-buttons">
+        <a href="/login">
+            <button class="login-btn">Login</button>
+        </a>
+
+        <a href="/signup">
+            <button class="signup-btn">Get Started</button>
+        </a>
+    </div>
+
 </nav>
 
 <!-- HERO -->
-<div class="hero">
-    <h1>All-in-One Student Management System</h1>
+<section class="hero">
 
-    <p>Manage students, track fees, and grow your institute smarter.</p>
+    <div class="hero-content">
 
-    <p style="margin-top:20px;">
-        Trusted by 100+ institutions <span style="color:#22c55e;">(Demo Project)</span>
-    </p>
+        <h1>
+            Manage Your
+            <span>Students & Payments</span>
+            Like A Premium SaaS
+        </h1>
 
-    <a href="/signup" class="btn btn-primary mt-3">Get Started</a>
-</div>
+        <p>
+            EduTrack helps institutions manage students, fees, invoices,
+            analytics and payments with a modern premium dashboard.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="/signup" class="start-btn">
+                Get Started
+            </a>
+
+            <a href="/login" class="demo-btn">
+                Live Dashboard
+            </a>
+        </div>
+
+    </div>
+
+</section>
 
 <!-- FEATURES -->
-<div class="section container">
-<h2 class="text-center mb-5">Features</h2>
+<section class="features">
 
-<div class="row">
-<div class="col-md-4 feature-box">
-    <h5>📊 Dashboard Analytics</h5>
-    <p>Visual insights with charts and reports.</p>
-</div>
+    <div class="section-title">
+        <h2>Premium Features</h2>
+        <p>Everything you need to manage your institution professionally.</p>
+    </div>
 
-<div class="col-md-4 feature-box">
-    <h5>💰 Fee Management</h5>
-    <p>Track paid and pending fees easily.</p>
-</div>
+    <div class="feature-grid">
 
-<div class="col-md-4 feature-box">
-    <h5>📥 Export Reports</h5>
-    <p>Download data in CSV format instantly.</p>
-</div>
-</div>
+        <div class="feature-card">
+            <i class="fa-solid fa-chart-line"></i>
+            <h3>Analytics Dashboard</h3>
+            <p>Track payments, students and revenue with beautiful analytics.</p>
+        </div>
 
-</div>
+        <div class="feature-card">
+            <i class="fa-solid fa-credit-card"></i>
+            <h3>Online Payments</h3>
+            <p>Accept secure online payments directly through Razorpay.</p>
+        </div>
 
-<!-- WHY US -->
-<div class="section bg-light text-center">
-<h2>Why Choose EduTrack?</h2>
+        <div class="feature-card">
+            <i class="fa-solid fa-file-invoice"></i>
+            <h3>Invoice System</h3>
+            <p>Generate professional PDF invoices instantly.</p>
+        </div>
 
-<p class="mt-3">
-Fast, secure, and easy-to-use platform for institutes.
-</p>
+        <div class="feature-card">
+            <i class="fa-solid fa-user-graduate"></i>
+            <h3>Student Management</h3>
+            <p>Add, edit and manage students in one premium dashboard.</p>
+        </div>
 
-<div class="row mt-4">
-<div class="col-md-4">⚡ Fast Performance</div>
-<div class="col-md-4">🔒 Secure Login</div>
-<div class="col-md-4">📊 Real-time Analytics</div>
-</div>
+        <div class="feature-card">
+            <i class="fa-solid fa-lock"></i>
+            <h3>Secure Login</h3>
+            <p>Modern authentication system with secure password protection.</p>
+        </div>
 
-</div>
+        <div class="feature-card">
+            <i class="fa-solid fa-cloud"></i>
+            <h3>Cloud Hosted</h3>
+            <p>Deploy your system online and access it from anywhere.</p>
+        </div>
 
-<!-- CTA -->
-<div class="section text-center" style="background:#0f172a; color:white;">
-<h2>Start Managing Today</h2>
+    </div>
 
-<a href="/signup" class="btn btn-primary mt-3">Create Account</a>
-</div>
+</section>
 
 <!-- FOOTER -->
 <div class="footer">
-    © 2026 EduTrack | Built by Prathamesh Kulkarni
+    © 2026 EduTrack — Premium Student Management Platform
 </div>
 
 </body>
 </html>
+```
